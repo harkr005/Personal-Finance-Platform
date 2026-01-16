@@ -225,5 +225,3 @@ CREATE TABLE category_corrections (
 For setup issues, refer to the detailed `SETUP.md` file or check the troubleshooting section.
 
 ---
-
-**Built with ❤️ using AI and modern web technologies**
