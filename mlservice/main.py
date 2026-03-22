@@ -32,11 +32,31 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize services
-ocr_service = OCRService()
-categorization_service = CategorizationService()
-prediction_service = PredictionService()
-advice_service = AdviceService()
+# Initialize services lazily
+ocr_service = None
+categorization_service = None
+prediction_service = None
+advice_service = None
+
+def get_ocr_service():
+    global ocr_service
+    if ocr_service is None: ocr_service = OCRService()
+    return ocr_service
+
+def get_categorization_service():
+    global categorization_service
+    if categorization_service is None: categorization_service = CategorizationService()
+    return categorization_service
+
+def get_prediction_service():
+    global prediction_service
+    if prediction_service is None: prediction_service = PredictionService()
+    return prediction_service
+
+def get_advice_service():
+    global advice_service
+    if advice_service is None: advice_service = AdviceService()
+    return advice_service
 
 # Pydantic models
 class CategorizeRequest(BaseModel):
@@ -81,7 +101,7 @@ async def health_check():
 @app.post("/ocr/extract")
 async def extract_receipt_data(file: UploadFile = File(...)):
     try:
-        result = await ocr_service.extract_receipt_data(file)
+        result = await get_ocr_service().extract_receipt_data(file)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -90,7 +110,7 @@ async def extract_receipt_data(file: UploadFile = File(...)):
 @app.post("/categorize")
 async def categorize_transaction(request: CategorizeRequest):
     try:
-        result = categorization_service.categorize(
+        result = get_categorization_service().categorize(
             merchant=request.merchant,
             description=request.description,
             amount=request.amount
@@ -102,7 +122,7 @@ async def categorize_transaction(request: CategorizeRequest):
 @app.post("/train")
 async def train_model(request: TrainRequest):
     try:
-        result = categorization_service.train_model(
+        result = get_categorization_service().train_model(
             merchant=request.merchant,
             description=request.description,
             amount=request.amount,
@@ -116,7 +136,7 @@ async def train_model(request: TrainRequest):
 @app.post("/predict")
 async def predict_spending(request: PredictRequest):
     try:
-        result = prediction_service.predict_spending(
+        result = get_prediction_service().predict_spending(
             user_id=request.user_id,
             spending_data=request.spending_data,
             target_month=request.target_month,
@@ -130,7 +150,7 @@ async def predict_spending(request: PredictRequest):
 @app.post("/advice")
 async def generate_advice(request: AdviceRequest):
     try:
-        result = advice_service.generate_advice(
+        result = get_advice_service().generate_advice(
             current_spending=request.current_spending,
             monthly_spending=request.monthly_spending,
             budgets=request.budgets,
@@ -147,7 +167,7 @@ async def generate_advice_stream(request: AdviceRequest):
     """Stream advice generation as it's being created"""
     async def generate():
         try:
-            for chunk in advice_service.generate_advice_stream(
+            for chunk in get_advice_service().generate_advice_stream(
                 current_spending=request.current_spending,
                 monthly_spending=request.monthly_spending,
                 budgets=request.budgets,
