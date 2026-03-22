@@ -230,7 +230,7 @@ export function Transactions() {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*,.pdf"
+            accept=".jpg,.jpeg,.png,.pdf,image/*"
             onChange={handleReceiptUpload}
             className="hidden"
             disabled={uploadingReceipt}
