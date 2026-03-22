@@ -178,10 +178,11 @@ router.post('/uploadReceipt', authenticateToken, upload.single('receipt'), async
     // Provide more detailed error messages
     let errorMessage = 'Failed to process receipt';
     if (error.response) {
-      // ML service error
-      errorMessage = error.response.data?.error || error.response.data?.message || errorMessage;
+      // ML service error (FastAPI uses 'detail', Express uses 'error' or 'message')
+      errorMessage = error.response.data?.error || error.response.data?.message || error.response.data?.detail || errorMessage;
+      if (typeof errorMessage === 'object') errorMessage = JSON.stringify(errorMessage);
     } else if (error.code === 'ECONNREFUSED') {
-      errorMessage = 'ML service is not available. Please ensure the ML service is running.';
+      errorMessage = 'ML service is not available. Please check if the Render URL is correct and the service is awake.';
     } else if (error.message) {
       errorMessage = error.message;
     }
