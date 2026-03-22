@@ -84,6 +84,7 @@ class AdviceRequest(BaseModel):
     user_id: int
     analysis_period_months: int = 3
 
+@app.head("/")
 @app.get("/")
 async def root():
     return {"message": "AI Finance ML Service", "status": "running"}
